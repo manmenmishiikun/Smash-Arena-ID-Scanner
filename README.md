@@ -4,7 +4,7 @@
 OBS Studio で映している画面を常にチェックして、部屋 ID が画面に出た瞬間にコピー＆通知します。
 
 ## 📥 ダウンロード
-最新版はこちらからどうぞ → https://github.com/manmenmishiikun/Smash-Arena-ID-Scanner/releases/latest
+最新版はこちらからどうぞ → https://github.com/manmenmishiikun/Smash-Arena-ID-Scanner/releases
 
 ---
 
