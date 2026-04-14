@@ -5,7 +5,7 @@ test_pipeline.py
 このスクリプトは以下の2つのテストを選択して実行できます。
 
   [1] ローカル画像テスト
-      test_screen.png を読み込み、テンプレートマッチング → 前処理 → OCR の全工程を検証する。
+      test_screen_4Q1PG_4QIPG.png を読み込み、テンプレートマッチング → 前処理 → OCR の全工程を検証する。
       → OBS が起動していなくてもテスト可能。
 
   [2] OBS WebSocket 接続テスト
@@ -34,7 +34,7 @@ from ocr_engine import WinRTOcrEngine
 from obs_capture import OBSCapture, ObsConnectionConfig
 
 TEMPLATE_PATH = os.path.join(ROOT_DIR, "assets", "templates", "arenahere.png")
-TEST_SCREEN_PATH = os.path.join(ROOT_DIR, "assets", "samples", "test_screen.png")
+TEST_SCREEN_PATH = os.path.join(ROOT_DIR, "assets", "samples", "test_screen_4Q1PG_4QIPG.png")
 
 
 # ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ async def test_local_image():
 
     if not os.path.exists(TEST_SCREEN_PATH):
         print(f"✗ '{TEST_SCREEN_PATH}' が見つかりません。")
-        print("  ヒント: テスト用のゲーム画面スクショを 'assets/samples/test_screen.png' に保存してください。")
+        print("  ヒント: テスト用のゲーム画面スクショを 'assets/samples/test_screen_4Q1PG_4QIPG.png' に保存してください。")
         return
 
     processor = ImageProcessor(TEMPLATE_PATH, debug=True)
@@ -88,7 +88,7 @@ async def test_local_image():
         print("✗ 画像の読み込みに失敗しました。")
         return
 
-    await run_ocr_on_frame(frame, processor, engine, label="assets/samples/test_screen.png")
+    await run_ocr_on_frame(frame, processor, engine, label="assets/samples/test_screen_4Q1PG_4QIPG.png")
 
     print("\n  デバッグ画像を保存しました:")
     for fname in ["debug_1_roi_original.png", "debug_2_binary.png",
@@ -161,7 +161,7 @@ async def main():
         await test_obs_connection()
     else:
         print("\nどちらのテストを実行しますか？")
-        print("  [1] ローカル画像テスト (assets/samples/test_screen.png を使用)")
+        print("  [1] ローカル画像テスト (assets/samples/test_screen_4Q1PG_4QIPG.png を使用)")
         print("  [2] OBS WebSocket 接続テスト")
         choice = input("番号を入力 (1/2): ").strip()
 

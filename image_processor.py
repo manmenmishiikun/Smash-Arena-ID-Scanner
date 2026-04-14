@@ -204,12 +204,13 @@ class ImageProcessor:
         """
         work = roi_bgr
         if OCR_ROI_SCALE != 1.0:
+            # 拡大は INTER_LINEAR（CUBIC より軽量。ROI は小さめのため画質差は小さい）
             work = cv2.resize(
                 work,
                 None,
                 fx=OCR_ROI_SCALE,
                 fy=OCR_ROI_SCALE,
-                interpolation=cv2.INTER_CUBIC,
+                interpolation=cv2.INTER_LINEAR,
             )
 
         gray = cv2.cvtColor(work, cv2.COLOR_BGR2GRAY)
@@ -328,6 +329,17 @@ class ImageProcessor:
         m = ROOM_ID_PATTERN.search(text)
         return m.group(0) if m else None
 
+    @staticmethod
+    def _resize_to_1080p(screen_bgr: np.ndarray) -> np.ndarray:
+        """OBS 解像度を 1920×1080 へ合わせる。縮小は INTER_AREA、拡大は INTER_LINEAR（LANCZOS4 より低負荷）。"""
+        h, w = screen_bgr.shape[:2]
+        if w == 1920 and h == 1080:
+            return screen_bgr
+        # いずれかの辺がターゲットより大きいときは縮小寄り
+        down = w > 1920 or h > 1080
+        interp = cv2.INTER_AREA if down else cv2.INTER_LINEAR
+        return cv2.resize(screen_bgr, (1920, 1080), interpolation=interp)
+
     # -----------------------------------------------------------------------
     # 公開インターフェース
     # -----------------------------------------------------------------------
@@ -346,7 +358,7 @@ class ImageProcessor:
         # ── 1080p テンプレート（常に最初に試みる）──
         screen_1080 = screen_bgr
         if w != 1920 or h != 1080:
-            screen_1080 = cv2.resize(screen_bgr, (1920, 1080), interpolation=cv2.INTER_LANCZOS4)
+            screen_1080 = self._resize_to_1080p(screen_bgr)
 
         screen_gray_1080 = cv2.cvtColor(screen_1080, cv2.COLOR_BGR2GRAY)
         coarse_1080 = self._coarse_match_score(screen_gray_1080, self._template_gray_coarse)

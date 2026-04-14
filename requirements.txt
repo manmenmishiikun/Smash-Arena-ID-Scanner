@@ -1,4 +1,5 @@
 winsdk
+aiohttp
 obsws-python
 opencv-python
 numpy

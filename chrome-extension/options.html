@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smash Arena ID Bridge</title>
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --surface: #ffffff;
+        --surface-muted: #f0f1f4;
+        --border: #e2e4e9;
+        --text: #1a1d26;
+        --text-secondary: #5c6370;
+        --text-tertiary: #8b919c;
+        --accent: #1565c0;
+        --accent-hover: #0d47a1;
+        --success-bg: #e8f5e9;
+        --success-text: #1b5e20;
+        --focus-ring: rgba(21, 101, 192, 0.35);
+        --radius: 10px;
+        --radius-sm: 8px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        --font: system-ui, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+          "Noto Sans JP", sans-serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1a1c21;
+          --surface: #252830;
+          --surface-muted: #2d313c;
+          --border: #3d424d;
+          --text: #eceef2;
+          --text-secondary: #a8adb8;
+          --text-tertiary: #7a808c;
+          --accent: #64b5f6;
+          --accent-hover: #90caf9;
+          --success-bg: #1b3d24;
+          --success-text: #a5d6a7;
+          --focus-ring: rgba(100, 181, 246, 0.4);
+          --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font);
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--text);
+        background: var(--bg);
+        margin: 0;
+        padding: 14px 16px 16px;
+        min-width: 300px;
+        max-width: 380px;
+      }
+
+      .app-header {
+        margin-bottom: 14px;
+      }
+
+      .app-title {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        margin: 0 0 4px;
+      }
+
+      .app-sub {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 12px 14px;
+        margin-bottom: 10px;
+      }
+
+      .section-title {
+        margin: 0 0 10px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-tertiary);
+      }
+
+      .option-block {
+        margin-bottom: 14px;
+      }
+
+      .option-block:last-child {
+        margin-bottom: 0;
+      }
+
+      .option-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .option-head input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 2px 0 0;
+        flex-shrink: 0;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+
+      .option-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .option-title {
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .option-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+
+      .port-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #bridgePort {
+        width: 5.5rem;
+        padding: 8px 10px;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+        background: var(--surface-muted);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        outline: none;
+      }
+
+      #bridgePort:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+
+      #bridgePort:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .url-preview {
+        margin: 8px 0 0;
+        padding: 8px 10px;
+        font-size: 11px;
+        word-break: break-all;
+        color: var(--text-secondary);
+        background: var(--surface-muted);
+        border-radius: var(--radius-sm);
+        border: 1px dashed var(--border);
+      }
+
+      .url-preview code {
+        font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+        font-size: 11px;
+        color: var(--text);
+      }
+
+      .footer-actions {
+        margin-top: 4px;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin: 0;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: inherit;
+        color: #fff;
+        background: var(--accent);
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.08s ease;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .btn-primary:active {
+        transform: scale(0.98);
+      }
+
+      .btn-primary:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+
+      #status {
+        min-height: 1.25em;
+        margin: 10px 0 0;
+        font-size: 12px;
+        text-align: center;
+        color: var(--text-secondary);
+      }
+
+      #status.is-success {
+        color: var(--success-text);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="app-header">
+      <h1 class="app-title">Smash Arena ID Bridge</h1>
+      <p class="app-sub">
+        PC 版アプリの「拡張連携」と同じポートにすると、部屋IDがスマメイトの入力欄へ届きます。
+      </p>
+    </header>
+
+    <section class="card" aria-labelledby="h-local">
+      <h2 id="h-local" class="section-title">ローカル接続</h2>
+
+      <div class="option-block">
+        <div class="option-head">
+          <input type="checkbox" id="bridgeEnabled" aria-describedby="bridgeEnabled-desc" />
+          <div class="option-text">
+            <label class="option-title" for="bridgeEnabled">SSE に接続する</label>
+            <p id="bridgeEnabled-desc" class="option-desc">
+              OFF のときはデスクトップアプリへ接続しません。監視中のアプリからのみ配信されます。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <label class="field-label" for="bridgePort">連携ポート（既定 2206）</label>
+        <div class="port-row">
+          <input
+            type="number"
+            id="bridgePort"
+            min="1"
+            max="65535"
+            step="1"
+            inputmode="numeric"
+            aria-describedby="urlPreview"
+          />
+        </div>
+        <p class="url-preview" id="urlPreviewWrap">
+          接続先: <code id="urlPreview">http://127.0.0.1:2206/events</code>
+        </p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="h-page">
+      <h2 id="h-page" class="section-title">スマメイトのページ</h2>
+
+      <div class="option-block">
+        <div class="option-head">
+          <input
+            type="checkbox"
+            id="autoClickMatchingPostBtn"
+            aria-describedby="autoClick-desc"
+          />
+          <div class="option-text">
+            <label class="option-title" for="autoClickMatchingPostBtn">
+              反映後に送信ボタンを自動クリック
+            </label>
+            <p id="autoClick-desc" class="option-desc">
+              部屋ID入力のあと、<code>matching_post_btn</code> を押します。確認ダイアログはサイト側のままです。規約・運用はご自身でご判断ください。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-actions">
+      <button type="button" class="btn-primary" id="save">保存して反映</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </div>
+
+    <script src="constants.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

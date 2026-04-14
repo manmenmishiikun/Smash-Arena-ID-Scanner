@@ -6,7 +6,18 @@ datas = [
     ('../assets/templates/arenahere_720p.png', 'assets/templates'),
 ]
 binaries = []
-hiddenimports = ['winsdk.windows.media.ocr', 'winsdk.windows.graphics.imaging', 'winsdk.windows.storage.streams', 'winsdk.windows.applicationmodel.datatransfer', 'pystray._win32']
+hiddenimports = [
+    'winsdk.windows.media.ocr',
+    'winsdk.windows.graphics.imaging',
+    'winsdk.windows.storage.streams',
+    'winsdk.windows.applicationmodel.datatransfer',
+    'pystray._win32',
+    'aiohttp',
+    'multidict',
+    'yarl',
+    'frozenlist',
+    'aiosignal',
+]
 tmp_ret = collect_all('pystray')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('customtkinter')

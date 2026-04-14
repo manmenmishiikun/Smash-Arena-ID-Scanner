@@ -36,7 +36,7 @@ SAMPLES = [
     "test_screen_J6KHC_JGKHC.png",
     "test_screen_J909W_J9Q9W.png",
     "test_screen_KQJJN_K0JJN.png",
-    "test_screen.png",
+    "test_screen_4Q1PG_4QIPG.png",
 ]
 
 NAME_PATTERN = re.compile(
@@ -115,7 +115,7 @@ async def main() -> None:
     engine = WinRTOcrEngine()
 
     print("=" * 72)
-    print("OCR サンプル回帰テスト (8 images)")
+    print("OCR サンプル回帰テスト (8 images, 8 expected)")
     print("=" * 72)
 
     results = []

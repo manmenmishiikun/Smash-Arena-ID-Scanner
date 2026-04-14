@@ -18,7 +18,18 @@ def test_confirm_after_two_same_reads() -> None:
     assert d.process("ABCDE").confirmed_id is None
     r = d.process("ABCDE")
     assert r.confirmed_id == "ABCDE"
+    assert d.state.last_copied_id == ""
+    d.acknowledge_copy("ABCDE")
     assert d.state.last_copied_id == "ABCDE"
+
+
+def test_confirm_without_acknowledge_allows_redetect() -> None:
+    d = RoomIdDetector(DetectionConfig(confirm_needed=2))
+    assert d.process("ABCDE").confirmed_id is None
+    assert d.process("ABCDE").confirmed_id == "ABCDE"
+    assert d.state.last_copied_id == ""
+    assert d.process("ABCDE").confirmed_id is None
+    assert d.process("ABCDE").confirmed_id == "ABCDE"
 
 
 def test_confusable_same_as_last_no_copy() -> None:

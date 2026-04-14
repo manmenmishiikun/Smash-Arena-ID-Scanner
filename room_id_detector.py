@@ -53,6 +53,7 @@ class DetectionConfig:
 class DetectionState:
     """現在までの検出状態。"""
 
+    # ワーカーがクリップボードへコピー成功した後に更新される（確定直後ではない）
     last_copied_id: str = ""
     pending_id: str = ""
     pending_count: int = 0
@@ -79,7 +80,8 @@ class RoomIdDetector:
     部屋ID検出のステートマシン。
 
     OCR から渡される room_id 候補を逐次与えることで、いつ「確定」したとみなすかを判定する。
-    GUI には副作用を持たず、戻り値のみで意思決定できる純粋ロジック。
+    `process` は戻り値で意思決定する。`acknowledge_copy` はワーカーがクリップボード成功後に
+    内部状態（last_copied_id）を更新するため、I/O 境界の外で呼ぶ。
     """
 
     def __init__(self, config: Optional[DetectionConfig] = None):
@@ -109,6 +111,10 @@ class RoomIdDetector:
         """
         self._state.pending_id = ""
         self._state.pending_count = 0
+
+    def acknowledge_copy(self, room_id: str) -> None:
+        """クリップボードへのコピーが成功したあとに呼ぶ。last_copied_id を更新する。"""
+        self._state.last_copied_id = room_id
 
     def process(self, room_id: Optional[str]) -> DetectionResult:
         """
@@ -142,9 +148,8 @@ class RoomIdDetector:
         if room_id == s.pending_id:
             self._state.pending_count += 1
             if self._state.pending_count == self._cfg.confirm_needed:
-                # ここでようやく「確定」扱いとし、コピー済みIDに登録する
+                # 確定（コピーはワーカー側。成功時のみ acknowledge_copy で last_copied_id を更新）
                 confirmed = room_id
-                self._state.last_copied_id = room_id
                 self._state.pending_id = ""
                 self._state.pending_count = 0
                 poll_interval = self._cfg.poll_slow
