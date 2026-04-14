@@ -1,0 +1,10 @@
+winsdk
+obsws-python
+opencv-python
+numpy
+customtkinter
+pyperclip
+pyinstaller
+pystray
+Pillow
+pytest

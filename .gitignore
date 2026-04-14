@@ -1,0 +1,54 @@
+# --- Python ---
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+
+# --- テスト・品質ツール ---
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# --- ビルド成果物（PyInstaller 等）---
+dist/
+build/
+
+# --- ログ ---
+*.log
+debug-*.log
+
+# --- 個人設定・機密情報 ---
+# OBS WebSocket のパスワード等が入る。未コミットならリポジトリに載せない。
+# 既定値だけ共有したい場合は config.example.json など別名でコミットする運用にすると安全。
+config.json
+config.json.bak
+
+# --- 配布物（ルートに置いた ZIP / 取り残し exe。dist/ は上で除外済み）---
+/*.zip
+*.exe
+
+# --- フォント（未使用・ライセンス上リポジトリに含めない）---
+*.ttf
+*.otf
+
+# --- 環境変数ファイル（将来使う場合）---
+.env
+.env.local
+
+# --- Windows ---
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+# --- macOS ---
+.DS_Store
+
+# --- エディタ（チームで共有しない場合）---
+.idea/
