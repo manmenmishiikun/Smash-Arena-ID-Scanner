@@ -22,6 +22,7 @@ build/
 # --- ログ ---
 *.log
 debug-*.log
+debug_*.png
 
 # --- 個人設定・機密情報 ---
 # OBS WebSocket のパスワード等が入る。未コミットならリポジトリに載せない。

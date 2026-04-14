@@ -8,14 +8,18 @@ import sys
 
 import cv2
 
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(TOOLS_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from image_processor import ImageProcessor
 from ocr_engine import WinRTOcrEngine
 
-TEMPLATE = os.path.join(os.path.dirname(__file__), "arenahere.png")
+TEMPLATE = os.path.join(ROOT_DIR, "assets", "templates", "arenahere.png")
 
-# 追加の画像置き場（デフォルトはこのスクリプトと同じディレクトリ＝リポジトリ直下）
-_here = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_ASSETS_DIR = _here
+# 追加の画像置き場（既定は assets/samples）
+DEFAULT_ASSETS_DIR = os.path.join(ROOT_DIR, "assets", "samples")
 
 
 def _parse_expected(path: str) -> tuple[str, str] | None:
@@ -63,13 +67,9 @@ async def main() -> None:
         "test_screen_J909W_J9Q9W.png",
     ]
     paths = []
-    here = _here
     for short in short_names:
-        p_local = os.path.join(here, short)
         p_assets = os.path.join(assets_dir, short)
-        if os.path.isfile(p_local):
-            paths.append(p_local)
-        elif os.path.isfile(p_assets):
+        if os.path.isfile(p_assets):
             paths.append(p_assets)
         else:
             print(f"[WARN] 見つかりません: {short}", file=sys.stderr)

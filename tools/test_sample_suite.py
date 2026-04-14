@@ -11,17 +11,22 @@
 import asyncio
 import os
 import re
+import sys
 from dataclasses import dataclass
 
 import cv2
 
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS_DIR)
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
 from image_processor import ImageProcessor
 from ocr_engine import WinRTOcrEngine
 
-
-ROOT = os.path.dirname(__file__)
-TEMPLATE_1080 = os.path.join(ROOT, "arenahere.png")
-TEMPLATE_720 = os.path.join(ROOT, "arenahere_720p.png")
+SAMPLES_DIR = os.path.join(ROOT, "assets", "samples")
+TEMPLATE_1080 = os.path.join(ROOT, "assets", "templates", "arenahere.png")
+TEMPLATE_720 = os.path.join(ROOT, "assets", "templates", "arenahere_720p.png")
 
 SAMPLES = [
     "test_screen_0RKHM_QRKHM.png",
@@ -62,7 +67,7 @@ async def run_one(
     engine: WinRTOcrEngine,
     image_name: str,
 ) -> OneResult:
-    path = os.path.join(ROOT, image_name)
+    path = os.path.join(SAMPLES_DIR, image_name)
     expected, old_ocr = parse_expected(image_name)
 
     frame = cv2.imread(path, cv2.IMREAD_COLOR)

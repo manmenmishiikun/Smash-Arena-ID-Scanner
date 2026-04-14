@@ -1,7 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('arenahere.png', '.'), ('arenahere_720p.png', '.')]
+datas = [
+    ('../assets/templates/arenahere.png', 'assets/templates'),
+    ('../assets/templates/arenahere_720p.png', 'assets/templates'),
+]
 binaries = []
 hiddenimports = ['winsdk.windows.media.ocr', 'winsdk.windows.graphics.imaging', 'winsdk.windows.storage.streams', 'winsdk.windows.applicationmodel.datatransfer', 'pystray._win32']
 tmp_ret = collect_all('pystray')
@@ -11,7 +14,7 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
-    ['main.py'],
+    ['../main.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,

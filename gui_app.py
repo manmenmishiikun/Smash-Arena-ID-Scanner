@@ -620,6 +620,13 @@ class SmashArenaIDScannerApp(ctk.CTk):
             width=200,
         )
         self.btn_connect.pack(pady=CONNECTION_BTN_CONNECT_PADY)
+        self.label_setup_status = ctk.CTkLabel(
+            self.frame_obs_body,
+            text="",
+            text_color="orange",
+            wraplength=330,
+            font=self.font_status,
+        )
 
         # --- 対象ソースカード ---
         self.frame_source_card = ctk.CTkFrame(self.frame_dynamic, corner_radius=CONNECTION_CARD_CORNER_RADIUS)
@@ -713,6 +720,18 @@ class SmashArenaIDScannerApp(ctk.CTk):
             self.frame_source_body.pack(fill="x", padx=0, pady=(0, CONNECTION_BODY_PACK_PAD_BOTTOM))
         else:
             self.frame_source_body.pack_forget()
+
+    def _set_setup_status_notice(self, text: str = "", color: str = "orange") -> None:
+        """setup レイアウトでも見える通知ラベルを OBS カード内で出し分ける。"""
+        try:
+            if not text:
+                self.label_setup_status.pack_forget()
+                return
+            self.label_setup_status.configure(text=text, text_color=color)
+            if not self.label_setup_status.winfo_ismapped():
+                self.label_setup_status.pack(fill="x", padx=12, pady=(0, 6))
+        except tk.TclError:
+            pass
 
     def _toggle_connection_layout(self) -> None:
         """どちらのヘッダを押しても A↔B をスワップ。"""
@@ -1052,13 +1071,20 @@ class SmashArenaIDScannerApp(ctk.CTk):
         ConfigManager.save(self.config)
 
     def _resolve_template(self, name: str) -> Optional[str]:
-        p = os.path.join(self._base_path, name)
-        return p if os.path.exists(p) else None
+        candidates = (
+            os.path.join(self._base_path, name),
+            os.path.join(self._base_path, "assets", "templates", name),
+        )
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+        return None
 
     def _on_connect(self):
         if self._is_shutting_down:
             return
         self._save_config()
+        self._set_setup_status_notice("")
         self.btn_connect.configure(state="disabled", text="接続中...")
         self.btn_toggle.configure(state="disabled", text="監視を開始",
                                   fg_color="#28a745", hover_color="#218838")
@@ -1148,6 +1174,7 @@ class SmashArenaIDScannerApp(ctk.CTk):
         if self._is_shutting_down:
             return
         def update():
+            self._set_setup_status_notice("")
             self.btn_connect.configure(state="normal", text="再接続")
             self.combo_source.configure(state="normal", values=sources)
             if self.config.target_source in sources:
@@ -1201,13 +1228,14 @@ class SmashArenaIDScannerApp(ctk.CTk):
         if self._is_shutting_down:
             return
         def reset():
-            self.btn_connect.configure(state="normal", text="OBS に接続")
+            disconnected_text = "OBS との接続が切れました。再接続してください。"
+            self.btn_connect.configure(state="normal", text="再接続")
             self.combo_source.configure(state="disabled", values=[])
             self.btn_toggle.configure(state="disabled", text="監視を開始",
                                       fg_color="#28a745", hover_color="#218838")
             self.canvas_indicator.itemconfig(self.indicator_oval, fill="gray")  # ← インジケーターをリセット
             self.label_status.configure(
-                text="OBS との接続が切れました。再接続してください。", text_color="orange"
+                text=disconnected_text, text_color="orange"
             )
             if self.worker:
                 self.worker.is_monitoring = False
@@ -1215,15 +1243,7 @@ class SmashArenaIDScannerApp(ctk.CTk):
             self.canvas_lamp_room.itemconfig(self.oval_lamp_room, fill=LAMP_ROOM_OFF)
             self.canvas_lamp_id.itemconfig(self.oval_lamp_id, fill=LAMP_ID_OFF)
             self._apply_connection_layout("setup")
-            try:
-                if self.winfo_exists():
-                    messagebox.showwarning(
-                        "OBS",
-                        "OBS との接続が切れました。再接続してください。",
-                        parent=self,
-                    )
-            except tk.TclError:
-                pass
+            self._set_setup_status_notice(disconnected_text, "orange")
         try:
             self.after(0, reset)
         except tk.TclError:

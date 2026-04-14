@@ -1,4 +1,12 @@
 ﻿"""開発用: 接続カードの setup/run で要請高さを測るワンオフスクリプト。"""
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 import config_manager
 _old = config_manager.ConfigManager.load
 def _fake():

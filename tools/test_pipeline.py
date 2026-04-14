@@ -13,9 +13,9 @@ test_pipeline.py
       → OBS WebSocket v5 が有効な状態で実行する。
 
 使い方:
-  $ python test_pipeline.py          # メニューが表示される
-  $ python test_pipeline.py --local  # [1] のみ実行
-  $ python test_pipeline.py --obs    # [2] のみ実行
+  $ python tools/test_pipeline.py          # メニューが表示される
+  $ python tools/test_pipeline.py --local  # [1] のみ実行
+  $ python tools/test_pipeline.py --obs    # [2] のみ実行
 """
 
 import asyncio
@@ -23,13 +23,18 @@ import sys
 import os
 import cv2
 
-# ── 同ディレクトリのモジュールをインポート
+# ── リポジトリ直下のモジュールをインポート
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(TOOLS_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from image_processor import ImageProcessor
 from ocr_engine import WinRTOcrEngine
 from obs_capture import OBSCapture, ObsConnectionConfig
 
-TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "arenahere.png")
-TEST_SCREEN_PATH = os.path.join(os.path.dirname(__file__), "test_screen.png")
+TEMPLATE_PATH = os.path.join(ROOT_DIR, "assets", "templates", "arenahere.png")
+TEST_SCREEN_PATH = os.path.join(ROOT_DIR, "assets", "samples", "test_screen.png")
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +77,7 @@ async def test_local_image():
 
     if not os.path.exists(TEST_SCREEN_PATH):
         print(f"✗ '{TEST_SCREEN_PATH}' が見つかりません。")
-        print("  ヒント: テスト用のゲーム画面スクショを 'test_screen.png' として保存してください。")
+        print("  ヒント: テスト用のゲーム画面スクショを 'assets/samples/test_screen.png' に保存してください。")
         return
 
     processor = ImageProcessor(TEMPLATE_PATH, debug=True)
@@ -83,12 +88,12 @@ async def test_local_image():
         print("✗ 画像の読み込みに失敗しました。")
         return
 
-    await run_ocr_on_frame(frame, processor, engine, label="test_screen.png")
+    await run_ocr_on_frame(frame, processor, engine, label="assets/samples/test_screen.png")
 
     print("\n  デバッグ画像を保存しました:")
     for fname in ["debug_1_roi_original.png", "debug_2_binary.png",
                   "debug_3_morphed.png", "debug_4_inverted.png"]:
-        path = os.path.join(os.path.dirname(__file__), fname)
+        path = os.path.join(ROOT_DIR, fname)
         if os.path.exists(path):
             print(f"    - {fname}")
 
@@ -156,7 +161,7 @@ async def main():
         await test_obs_connection()
     else:
         print("\nどちらのテストを実行しますか？")
-        print("  [1] ローカル画像テスト (test_screen.png を使用)")
+        print("  [1] ローカル画像テスト (assets/samples/test_screen.png を使用)")
         print("  [2] OBS WebSocket 接続テスト")
         choice = input("番号を入力 (1/2): ").strip()
 

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0\.."
 
 echo Preparing build (venv + dependencies)...
 if not exist "venv\Scripts\activate.bat" (
@@ -18,7 +18,7 @@ echo ===================================================
 echo.
 
 REM Single-line PyInstaller avoids broken line-continuation (^) with UTF-8 / stray spaces.
-python -m PyInstaller --noconfirm --onefile --windowed --name "SmashArenaIDScanner" --add-data "arenahere.png;." --add-data "arenahere_720p.png;." --hidden-import "winsdk.windows.media.ocr" --hidden-import "winsdk.windows.graphics.imaging" --hidden-import "winsdk.windows.storage.streams" --hidden-import "winsdk.windows.applicationmodel.datatransfer" --hidden-import "pystray._win32" --collect-all "pystray" --collect-all "customtkinter" main.py
+python -m PyInstaller --noconfirm --onefile --windowed --name "SmashArenaIDScanner" --add-data "assets/templates/arenahere.png;assets/templates" --add-data "assets/templates/arenahere_720p.png;assets/templates" --hidden-import "winsdk.windows.media.ocr" --hidden-import "winsdk.windows.graphics.imaging" --hidden-import "winsdk.windows.storage.streams" --hidden-import "winsdk.windows.applicationmodel.datatransfer" --hidden-import "pystray._win32" --collect-all "pystray" --collect-all "customtkinter" main.py
 
 echo.
 echo ===================================================
