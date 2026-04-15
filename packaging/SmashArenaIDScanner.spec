@@ -4,6 +4,7 @@ from PyInstaller.utils.hooks import collect_all
 datas = [
     ('../assets/templates/arenahere.png', 'assets/templates'),
     ('../assets/templates/arenahere_720p.png', 'assets/templates'),
+    ('../icons/arena scan@128.png', 'icons'),
 ]
 binaries = []
 hiddenimports = [

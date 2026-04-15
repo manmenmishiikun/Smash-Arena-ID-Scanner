@@ -14,7 +14,7 @@ def _fake():
     c.auto_start = False
     return c
 config_manager.ConfigManager.load = _fake
-from gui_app import SmashArenaIDScannerApp
+from gui.main_window import SmashArenaIDScannerApp
 app = SmashArenaIDScannerApp()
 app.update_idletasks()
 print('setup winfo_reqheight', app.winfo_reqheight(), 'winfo_height', app.winfo_height())

@@ -6,6 +6,8 @@
 import logging
 import os
 import sys
+import webbrowser
+from pathlib import Path
 import threading
 import tkinter.font as tkfont
 import winsound
@@ -17,7 +19,7 @@ import pystray
 import tkinter as tk
 from tkinter import messagebox
 
-from config_manager import AppConfig, ConfigManager
+from config_manager import AppConfig, ConfigManager, DEFAULT_EXTENSION_BRIDGE_PORT
 from extension_bridge_server import ExtensionBridgeServer
 from gui.constants import (
     AUTO_START_INITIAL_DELAY_MS,
@@ -48,6 +50,7 @@ from gui.constants import (
     RUN_SPACER_WEIGHT_BOTTOM,
     RUN_SPACER_WEIGHT_TOP,
     WINDOW_GEOMETRY_BOOTSTRAP,
+    WORKER_JOIN_TIMEOUT_SEC,
 )
 from gui.mixins.connection import ConnectionLayoutMixin
 from gui.mixins.extension_bridge import ExtensionBridgeMixin
@@ -106,6 +109,7 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
         self.attributes("-topmost", self.config.always_on_top)
 
         self._build_ui()
+        self._apply_window_icon()
         self._setup_tray()
 
         self.protocol("WM_DELETE_WINDOW", self._request_shutdown)
@@ -307,42 +311,46 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
         self.chk_auto_start.grid(row=0, column=2, padx=0, pady=2, sticky="e")
         ToolTip(self.chk_auto_start, "アプリ起動時に自動で接続・監視を開始します")
 
-        self.frame_bridge_row = ctk.CTkFrame(self.frame_toggles, fg_color="transparent")
-        self.frame_bridge_row.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(6, 0))
-        self.frame_bridge_row.columnconfigure(2, weight=1)
+        self.frame_arena_scan_row = ctk.CTkFrame(self, fg_color="transparent")
+
+        _arena_logo = self._load_arena_scan_logo_ctk()
+        _col = 0
+        if _arena_logo is not None:
+            self._arena_scan_logo_ctk = _arena_logo
+            self.label_arena_scan_logo = ctk.CTkLabel(
+                self.frame_arena_scan_row, image=_arena_logo, text=""
+            )
+            self.label_arena_scan_logo.grid(row=0, column=0, padx=(0, 6), pady=0, sticky="w")
+            ToolTip(self.label_arena_scan_logo, "Arena Scan（このアプリ）と Chrome 拡張をつなぎます")
+            _col = 1
 
         self.chk_extension_bridge = ctk.CTkSwitch(
-            self.frame_bridge_row,
-            text="🔗 拡張連携",
+            self.frame_arena_scan_row,
+            text="と連携",
             variable=self._extension_bridge_enabled,
             font=self.font_label,
-            width=118,
+            width=78,
             command=self._on_extension_bridge_switch_changed,
         )
-        self.chk_extension_bridge.grid(row=0, column=0, padx=(0, 8), pady=0, sticky="w")
+        self.chk_extension_bridge.grid(row=0, column=_col, padx=(0, 6), pady=0, sticky="w")
         ToolTip(
             self.chk_extension_bridge,
-            "ON のとき、監視中のみ 127.0.0.1 で SSE を待ち受けます（Chrome 拡張と同じポート）。OBS の WebSocket ポートとは別です。",
+            "ON のとき、監視中のみこの PC 内で Chrome 拡張とつながります（拡張の番号と同じにしてください）。OBS のポートとは別です。",
         )
 
-        self.label_bridge_port = ctk.CTkLabel(
-            self.frame_bridge_row,
-            text="拡張用ポート",
-            font=self.font_label,
+        self.btn_extension_bridge_port = ctk.CTkButton(
+            self.frame_arena_scan_row,
+            text="⚙",
+            width=34,
+            height=28,
+            font=self.font_btn,
+            command=self._open_extension_bridge_port_modal,
         )
-        self.label_bridge_port.grid(row=0, column=1, padx=(0, 6), pady=0, sticky="e")
+        self.btn_extension_bridge_port.grid(row=0, column=_col + 1, padx=(0, 0), pady=0, sticky="w")
+        ToolTip(self.btn_extension_bridge_port, "連携ポートを変更（既定と同じ番号にそろえる）")
+        self.frame_arena_scan_row.columnconfigure(_col + 2, weight=1)
 
-        self.entry_extension_bridge_port = ctk.CTkEntry(
-            self.frame_bridge_row,
-            textvariable=self._extension_bridge_port_str,
-            width=64,
-            font=self.font_input,
-            justify="center",
-        )
-        self.entry_extension_bridge_port.grid(row=0, column=2, padx=0, pady=0, sticky="w")
-        self.entry_extension_bridge_port.bind("<FocusOut>", self._on_extension_bridge_port_commit, add="+")
-        self.entry_extension_bridge_port.bind("<Return>", self._on_extension_bridge_port_commit, add="+")
-
+        self._build_extension_bridge_port_modal()
         self._apply_extension_bridge_port_widgets_state()
 
         start_run = bool(self.config.auto_start and self.config.target_source.strip())
@@ -355,8 +363,10 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
             padx=BOTTOM_SEPARATOR_PADX,
             pady=(BOTTOM_SEPARATOR_PADY_TOP, BOTTOM_SEPARATOR_PADY_BOTTOM),
         )
+        self.frame_arena_scan_row.pack(side="bottom", fill="x", padx=20, pady=(0, 6))
         self.frame_dynamic.pack(side="top", fill="both", expand=True, padx=20, pady=(0, 0))
         self.frame_bottom_separator.lift()
+        self.frame_arena_scan_row.lift()
         self.frame_toggles.lift()
         self._frame_id_outer.lift()
 
@@ -431,6 +441,126 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
             return HISTORY_BORDER
         return "#666666"
 
+    def _load_arena_scan_logo_ctk(self):
+        try:
+            from PIL import Image
+
+            path = os.path.join(self._base_path, "icons", "arena scan@128.png")
+            if not os.path.isfile(path):
+                return None
+            pil = Image.open(path).convert("RGBA")
+            pil = pil.resize((28, 28), Image.Resampling.LANCZOS)
+            return ctk.CTkImage(light_image=pil, dark_image=pil, size=(28, 28))
+        except Exception:
+            logger.debug("Arena Scan ロゴの読み込みに失敗しました。", exc_info=True)
+            return None
+
+    def _build_extension_bridge_port_modal(self) -> None:
+        self._extension_bridge_port_modal = ctk.CTkToplevel(self)
+        self._extension_bridge_port_modal.withdraw()
+        self._extension_bridge_port_modal.title("連携ポート")
+        self._extension_bridge_port_modal.resizable(False, False)
+        self._extension_bridge_port_modal.transient(self)
+        self._extension_bridge_port_modal.protocol(
+            "WM_DELETE_WINDOW", self._close_extension_bridge_port_modal
+        )
+
+        outer = ctk.CTkFrame(self._extension_bridge_port_modal, fg_color="transparent")
+        outer.pack(padx=20, pady=16, fill="both", expand=True)
+
+        self.label_bridge_port = ctk.CTkLabel(outer, text="連携ポート", font=self.font_label, anchor="w")
+        self.label_bridge_port.pack(fill="x")
+
+        self.entry_extension_bridge_port = ctk.CTkEntry(
+            outer,
+            textvariable=self._extension_bridge_port_str,
+            width=140,
+            font=self.font_input,
+            justify="center",
+        )
+        self.entry_extension_bridge_port.pack(fill="x", pady=(6, 0))
+        self.entry_extension_bridge_port.bind("<FocusOut>", self._on_extension_bridge_port_commit, add="+")
+        self.entry_extension_bridge_port.bind("<Return>", self._on_extension_bridge_port_commit, add="+")
+
+        self.label_extension_bridge_port_default = ctk.CTkLabel(
+            outer,
+            text=f"既定: {DEFAULT_EXTENSION_BRIDGE_PORT}",
+            font=self.font_small,
+            text_color="gray",
+            anchor="w",
+        )
+        self.label_extension_bridge_port_default.pack(fill="x", pady=(8, 0))
+
+        hint = ctk.CTkLabel(
+            outer,
+            text="Chrome 拡張の設定と同じ番号にしてください（OBS のポートとは別です）。",
+            font=self.font_small,
+            text_color="gray",
+            wraplength=280,
+            anchor="w",
+            justify="left",
+        )
+        hint.pack(fill="x", pady=(6, 0))
+
+        row = ctk.CTkFrame(outer, fg_color="transparent")
+        row.pack(fill="x", pady=(14, 0))
+
+        btn_readme = ctk.CTkButton(
+            row,
+            text="手順を見る（README）",
+            font=self.font_small,
+            width=160,
+            command=self._open_extension_bridge_readme,
+        )
+        btn_readme.pack(side="left", padx=(0, 8))
+
+        btn_close = ctk.CTkButton(
+            row,
+            text="閉じる",
+            font=self.font_btn,
+            width=100,
+            command=self._close_extension_bridge_port_modal,
+        )
+        btn_close.pack(side="right")
+
+    def _open_extension_bridge_readme(self) -> None:
+        readme = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "chrome-extension",
+            "README.md",
+        )
+        if os.path.isfile(readme):
+            webbrowser.open(Path(readme).as_uri())
+        else:
+            messagebox.showinfo(
+                "README",
+                "chrome-extension フォルダ内の README.md が見つかりませんでした。",
+                parent=self,
+            )
+
+    def _open_extension_bridge_port_modal(self) -> None:
+        if self._is_shutting_down:
+            return
+        self._extension_bridge_port_modal.deiconify()
+        self._extension_bridge_port_modal.lift()
+        self._extension_bridge_port_modal.focus_force()
+        try:
+            self.entry_extension_bridge_port.focus_set()
+        except tk.TclError:
+            pass
+        try:
+            self._extension_bridge_port_modal.grab_set()
+        except tk.TclError:
+            pass
+
+    def _close_extension_bridge_port_modal(self) -> None:
+        self._on_extension_bridge_port_commit()
+        try:
+            self._extension_bridge_port_modal.grab_release()
+        except tk.TclError:
+            pass
+        self._extension_bridge_port_modal.withdraw()
+
     def _on_topmost_changed(self):
         self.config.always_on_top = self._always_on_top.get()
         self.attributes("-topmost", self.config.always_on_top)
@@ -455,8 +585,22 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
             self.label_status.configure(text=f"手動コピー: {self._current_id}", text_color="#00FF88")
             self._flash_main_id()
 
+    def _apply_window_icon(self) -> None:
+        try:
+            from PIL import Image, ImageTk
+
+            path = os.path.join(self._base_path, "icons", "arena scan@128.png")
+            if not os.path.isfile(path):
+                return
+            img = Image.open(path).convert("RGBA")
+            img = img.resize((64, 64), Image.Resampling.LANCZOS)
+            self._window_icon_photo = ImageTk.PhotoImage(img)
+            self.iconphoto(True, self._window_icon_photo)
+        except Exception:
+            logger.debug("ウィンドウアイコンを設定できませんでした。", exc_info=True)
+
     def _setup_tray(self):
-        icon_img = create_tray_image()
+        icon_img = create_tray_image(self._base_path)
         menu = pystray.Menu(
             pystray.MenuItem("開く", self._on_tray_open, default=True),
             pystray.Menu.SEPARATOR,
@@ -501,7 +645,7 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
         except tk.TclError:
             pass
 
-    def _stop_worker(self, *, join_timeout: float = 3.0) -> None:
+    def _stop_worker(self, *, join_timeout: float = WORKER_JOIN_TIMEOUT_SEC) -> None:
         worker = self.worker
         self.worker = None
         if not worker:
@@ -528,7 +672,7 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
         except Exception:
             logger.exception("拡張連携 SSE の stop() に失敗しました。")
 
-        self._stop_worker(join_timeout=3.0)
+        self._stop_worker(join_timeout=WORKER_JOIN_TIMEOUT_SEC)
 
         tray_icon = self._tray_icon
         self._tray_icon = None
@@ -556,7 +700,15 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
         self.config.auto_start = self._auto_start.get()
         self.config.sound_enabled = self._sound_enabled.get()
         self._apply_extension_bridge_fields_from_ui()
-        ConfigManager.save(self.config)
+        try:
+            ConfigManager.save(self.config)
+        except Exception as e:
+            logger.exception("ConfigManager.save() に失敗しました。")
+            self.label_status.configure(
+                text=f"設定保存に失敗しました: {e}",
+                text_color="orange",
+            )
+            return
         self._finalize_extension_bridge_after_save(prev_ext)
 
     def _resolve_template(self, name: str) -> Optional[str]:
@@ -585,7 +737,7 @@ class SmashArenaIDScannerApp(ctk.CTk, ConnectionLayoutMixin, HistoryMenuMixin, E
         self.combo_source.configure(state="disabled", values=[])
         self.label_status.configure(text="接続しています...", text_color="gray")
 
-        self._stop_worker(join_timeout=3.0)
+        self._stop_worker(join_timeout=WORKER_JOIN_TIMEOUT_SEC)
 
         self.worker = OCRWorker(
             config=self.config,

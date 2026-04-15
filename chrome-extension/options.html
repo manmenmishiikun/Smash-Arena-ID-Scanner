@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Smash Arena ID Bridge</title>
+    <title>Arena Scan 連携</title>
     <style>
       :root {
         --bg: #f4f5f7;
@@ -17,6 +17,10 @@
         --accent-hover: #0d47a1;
         --success-bg: #e8f5e9;
         --success-text: #1b5e20;
+        --error-bg: #fdecea;
+        --error-text: #b3261e;
+        --warn-bg: #fff8e1;
+        --warn-text: #7a4f01;
         --focus-ring: rgba(21, 101, 192, 0.35);
         --radius: 10px;
         --radius-sm: 8px;
@@ -38,6 +42,10 @@
           --accent-hover: #90caf9;
           --success-bg: #1b3d24;
           --success-text: #a5d6a7;
+          --error-bg: #4a2524;
+          --error-text: #ffb4ab;
+          --warn-bg: #47371e;
+          --warn-text: #ffdf9b;
           --focus-ring: rgba(100, 181, 246, 0.4);
           --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
         }
@@ -54,26 +62,98 @@
         color: var(--text);
         background: var(--bg);
         margin: 0;
-        padding: 14px 16px 16px;
+        padding: 12px 14px 14px;
         min-width: 300px;
         max-width: 380px;
       }
 
-      .app-header {
-        margin-bottom: 14px;
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .brand-row img {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border-radius: 8px;
+      }
+
+      .brand-text {
+        min-width: 0;
       }
 
       .app-title {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
-        letter-spacing: -0.02em;
+        margin: 0 0 2px;
         color: var(--text);
-        margin: 0 0 4px;
       }
 
       .app-sub {
         margin: 0;
+        font-size: 11px;
+        color: var(--text-secondary);
+        line-height: 1.35;
+      }
+
+      .conn-state {
+        margin: 0 0 10px;
         font-size: 12px;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-muted);
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .conn-state::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-tertiary);
+        flex: 0 0 8px;
+      }
+
+      .conn-state.is-success {
+        border-color: var(--success-text);
+        background: var(--success-bg);
+        color: var(--success-text);
+      }
+
+      .conn-state.is-success::before {
+        background: var(--success-text);
+      }
+
+      .conn-state.is-warning {
+        border-color: var(--warn-text);
+        background: var(--warn-bg);
+        color: var(--warn-text);
+      }
+
+      .conn-state.is-warning::before {
+        background: var(--warn-text);
+      }
+
+      .conn-state.is-error {
+        border-color: var(--error-text);
+        background: var(--error-bg);
+        color: var(--error-text);
+      }
+
+      .conn-state.is-error::before {
+        background: var(--error-text);
+      }
+
+      .connection-hint {
+        margin: 6px 0 0;
+        font-size: 11px;
         color: var(--text-secondary);
       }
 
@@ -83,7 +163,7 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         padding: 12px 14px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
 
       .section-title {
@@ -96,7 +176,7 @@
       }
 
       .option-block {
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
 
       .option-block:last-child {
@@ -137,22 +217,142 @@
         margin: 0;
       }
 
+      .kbd-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .kbd-grid li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text);
+      }
+
+      .kbd-grid input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 2px 0 0;
+        flex-shrink: 0;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+
+      .kbd-grid label {
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .link-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-top: 4px;
+      }
+
+      .btn-inline {
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        color: var(--accent);
+        background: var(--surface-muted);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+      }
+
+      .btn-inline:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .text-link {
+        background: none;
+        border: none;
+        padding: 6px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        text-decoration: underline;
+        font-family: inherit;
+      }
+
+      .text-link:hover {
+        color: var(--accent-hover);
+      }
+
+      #status {
+        min-height: 1.1em;
+        margin: 8px 0 0;
+        font-size: 11px;
+        text-align: center;
+        color: var(--text-secondary);
+        border-radius: var(--radius-sm);
+        padding: 4px 6px;
+      }
+
+      #status.is-success {
+        color: var(--success-text);
+        font-weight: 600;
+        background: var(--success-bg);
+      }
+
+      #status.is-error {
+        color: var(--error-text);
+        font-weight: 600;
+        background: var(--error-bg);
+      }
+
+      #status.is-warning {
+        color: var(--warn-text);
+        font-weight: 600;
+        background: var(--warn-bg);
+      }
+
+      /* ポート詳細ダイアログ */
+      dialog {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0;
+        max-width: 320px;
+        width: calc(100vw - 32px);
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: var(--shadow);
+      }
+
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.35);
+      }
+
+      .dialog-inner {
+        padding: 14px 16px 16px;
+      }
+
+      .dialog-inner h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
       .field-label {
         display: block;
         font-size: 12px;
         font-weight: 600;
-        color: var(--text);
         margin-bottom: 6px;
       }
 
-      .port-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
       #bridgePort {
-        width: 5.5rem;
+        width: 100%;
+        max-width: 11rem;
         padding: 8px 10px;
         font-size: 14px;
         font-variant-numeric: tabular-nums;
@@ -173,113 +373,71 @@
         cursor: not-allowed;
       }
 
-      .url-preview {
-        margin: 8px 0 0;
-        padding: 8px 10px;
+      .field-error {
+        margin: 6px 0 0;
         font-size: 11px;
-        word-break: break-all;
-        color: var(--text-secondary);
-        background: var(--surface-muted);
-        border-radius: var(--radius-sm);
-        border: 1px dashed var(--border);
+        color: var(--error-text);
+        min-height: 1.2em;
       }
 
-      .url-preview code {
-        font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+      .default-hint {
+        margin: 8px 0 0;
         font-size: 11px;
+        color: var(--text-secondary);
+      }
+
+      .dialog-actions {
+        margin-top: 14px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .btn-dialog {
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--surface-muted);
         color: var(--text);
       }
 
-      .footer-actions {
-        margin-top: 4px;
-      }
-
-      .btn-primary {
-        width: 100%;
-        margin: 0;
-        padding: 10px 14px;
-        font-size: 13px;
-        font-weight: 600;
-        font-family: inherit;
-        color: #fff;
+      .btn-dialog.primary {
         background: var(--accent);
-        border: none;
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: background 0.15s ease, transform 0.08s ease;
-      }
-
-      .btn-primary:hover {
-        background: var(--accent-hover);
-      }
-
-      .btn-primary:active {
-        transform: scale(0.98);
-      }
-
-      .btn-primary:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 3px var(--focus-ring);
-      }
-
-      #status {
-        min-height: 1.25em;
-        margin: 10px 0 0;
-        font-size: 12px;
-        text-align: center;
-        color: var(--text-secondary);
-      }
-
-      #status.is-success {
-        color: var(--success-text);
-        font-weight: 600;
+        color: #fff;
+        border-color: var(--accent);
       }
     </style>
   </head>
   <body>
-    <header class="app-header">
-      <h1 class="app-title">Smash Arena ID Bridge</h1>
-      <p class="app-sub">
-        PC 版アプリの「拡張連携」と同じポートにすると、部屋IDがスマメイトの入力欄へ届きます。
-      </p>
+    <header class="brand-row">
+      <img src="icons/brand-arena-scan-128.png" width="40" height="40" alt="Arena Scan" />
+      <div class="brand-text">
+        <h1 class="app-title">Arena Scan と連携</h1>
+        <p class="app-sub">PC アプリで確定した部屋 ID を、スマメイトの対戦ルーム画面へ渡します。</p>
+      </div>
     </header>
 
-    <section class="card" aria-labelledby="h-local">
-      <h2 id="h-local" class="section-title">ローカル接続</h2>
+    <p class="conn-state" id="connectionState" role="status" aria-live="polite">状態を確認しています…</p>
+    <p class="connection-hint" id="connectionHint"></p>
+
+    <section class="card" aria-labelledby="h-opt">
+      <h2 id="h-opt" class="section-title">設定</h2>
 
       <div class="option-block">
         <div class="option-head">
           <input type="checkbox" id="bridgeEnabled" aria-describedby="bridgeEnabled-desc" />
           <div class="option-text">
-            <label class="option-title" for="bridgeEnabled">SSE に接続する</label>
+            <label class="option-title" for="bridgeEnabled">PC アプリと連携する</label>
             <p id="bridgeEnabled-desc" class="option-desc">
-              OFF のときはデスクトップアプリへ接続しません。監視中のアプリからのみ配信されます。
+              オンにすると、Arena Scan が監視中のときだけこの PC 内でつながります。
             </p>
           </div>
         </div>
       </div>
-
-      <div class="option-block">
-        <label class="field-label" for="bridgePort">連携ポート（既定 2206）</label>
-        <div class="port-row">
-          <input
-            type="number"
-            id="bridgePort"
-            min="1"
-            max="65535"
-            step="1"
-            inputmode="numeric"
-            aria-describedby="urlPreview"
-          />
-        </div>
-        <p class="url-preview" id="urlPreviewWrap">
-          接続先: <code id="urlPreview">http://127.0.0.1:2206/events</code>
-        </p>
-      </div>
-    </section>
-
-    <section class="card" aria-labelledby="h-page">
-      <h2 id="h-page" class="section-title">スマメイトのページ</h2>
 
       <div class="option-block">
         <div class="option-head">
@@ -289,21 +447,74 @@
             aria-describedby="autoClick-desc"
           />
           <div class="option-text">
-            <label class="option-title" for="autoClickMatchingPostBtn">
-              反映後に送信ボタンを自動クリック
-            </label>
+            <label class="option-title" for="autoClickMatchingPostBtn">反映後に「設定／変更」を自動で押す</label>
             <p id="autoClick-desc" class="option-desc">
-              部屋ID入力のあと、<code>matching_post_btn</code> を押します。確認ダイアログはサイト側のままです。規約・運用はご自身でご判断ください。
+              サイトの確認ダイアログはこれまでどおり手動です。規約・運用はご自身の判断でお願いします。
             </p>
           </div>
         </div>
       </div>
+
+      <div class="option-block" aria-labelledby="kb-shortcuts-title">
+        <p id="kb-shortcuts-title" class="section-title" style="margin-bottom: 8px">ページ上のキー操作</p>
+        <p class="option-desc" style="margin: 0 0 8px">
+          他の拡張機能やツールとキーが衝突する場合は、ここで個別にオフにできます。
+        </p>
+        <ul class="kbd-grid" aria-label="キーボードショートカットの有効キー">
+          <li>
+            <input type="checkbox" id="keyboardShortcutEnter" checked aria-describedby="kbd-hint-primary" />
+            <label for="keyboardShortcutEnter">Enter</label>
+          </li>
+          <li>
+            <input type="checkbox" id="keyboardShortcutSpace" checked aria-describedby="kbd-hint-primary" />
+            <label for="keyboardShortcutSpace">Space</label>
+          </li>
+          <li>
+            <input type="checkbox" id="keyboardShortcutEscape" checked aria-describedby="kbd-hint-cancel" />
+            <label for="keyboardShortcutEscape">Escape</label>
+          </li>
+          <li>
+            <input type="checkbox" id="keyboardShortcutBackspace" checked aria-describedby="kbd-hint-cancel" />
+            <label for="keyboardShortcutBackspace">Backspace</label>
+          </li>
+        </ul>
+        <p id="kbd-hint-primary" class="option-desc" style="margin: 8px 0 0">
+          Enter / Space：部屋ID欄での確定・確認ダイアログの OK
+        </p>
+        <p id="kbd-hint-cancel" class="option-desc" style="margin: 4px 0 0">
+          Escape / Backspace：確認ダイアログのキャンセル
+        </p>
+      </div>
+
+      <div class="link-actions">
+        <button type="button" class="btn-inline" id="openPortDetail" disabled>詳細（ポート番号）</button>
+        <button type="button" class="text-link" id="openGuide">使い方</button>
+      </div>
     </section>
 
-    <div class="footer-actions">
-      <button type="button" class="btn-primary" id="save">保存して反映</button>
-      <p id="status" role="status" aria-live="polite"></p>
-    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+
+    <dialog id="portDetail" aria-labelledby="portDetailTitle">
+      <div class="dialog-inner">
+        <h2 id="portDetailTitle">連携ポート</h2>
+        <label class="field-label" for="bridgePort">番号</label>
+        <input
+          type="number"
+          id="bridgePort"
+          min="1"
+          max="65535"
+          step="1"
+          inputmode="numeric"
+          aria-describedby="bridgePortError"
+        />
+        <p class="field-error" id="bridgePortError" role="status" aria-live="polite"></p>
+        <p class="default-hint" id="defaultPortHint"></p>
+        <div class="dialog-actions">
+          <button type="button" class="btn-dialog" id="portDetailCancel">キャンセル</button>
+          <button type="button" class="btn-dialog primary" id="portDetailOk">完了</button>
+        </div>
+      </div>
+    </dialog>
 
     <script src="constants.js"></script>
     <script src="options.js"></script>

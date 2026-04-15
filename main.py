@@ -4,7 +4,7 @@ import sys
 import threading
 import ctypes
 
-from gui_app import SmashArenaIDScannerApp
+from gui.main_window import SmashArenaIDScannerApp
 
 
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)

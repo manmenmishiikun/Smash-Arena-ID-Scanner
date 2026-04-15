@@ -22,6 +22,8 @@ SSE_PATH = "/events"
 
 # GUI から `stop()` したときの `Thread.join` 上限。通常はイベントループ停止で数 ms〜数百 ms 程度。
 STOP_JOIN_TIMEOUT_SEC = 4.0
+# 拡張側の read timeout より十分短く、無通信時の死活確認に使う。
+SSE_HEARTBEAT_SEC = 15.0
 
 
 def _normalize_room_id_for_sse(room_id: str) -> str:
@@ -161,7 +163,12 @@ class ExtensionBridgeServer:
                 self._client_queues.add(q)
             try:
                 while True:
-                    rid = await q.get()
+                    try:
+                        rid = await asyncio.wait_for(q.get(), timeout=SSE_HEARTBEAT_SEC)
+                    except asyncio.TimeoutError:
+                        # コメント行の heartbeat。クライアントは data: として解釈しない。
+                        await resp.write(b": keep-alive\n\n")
+                        continue
                     try:
                         await resp.write(f"data: {rid}\n\n".encode("utf-8"))
                     except (BrokenPipeError, ConnectionResetError, OSError):

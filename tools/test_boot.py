@@ -8,7 +8,7 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 try:
-    from gui_app import SmashArenaIDScannerApp
+    from gui.main_window import SmashArenaIDScannerApp
     app = SmashArenaIDScannerApp()
     app.after(1500, app.destroy)
     app.mainloop()

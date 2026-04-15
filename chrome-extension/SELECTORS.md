@@ -50,6 +50,12 @@
 
 このボタンが DOM にないページでは **入力反映を行いません**（誤った画面への書き込み防止）。
 
+## 「前回の部屋IDを呼び出す」（要メンテ）
+
+新規対戦ルーム作成直後などに表示されることがある **テキストリンク**（例: `⇒前回の部屋IDを呼び出す`）。実ページでは **`span.cursor`** で、文言はサイト改修で変わりうる。
+
+拡張では **`span.cursor`** を列挙し、表示テキストに **「前回」** と **「呼び出」** の両方を含む要素を **Enter / Space 優先クリック**の対象にする（[`content.js`](content.js) の `PREV_ROOM_RECALL_SPAN_SELECTOR` / `findPrevRoomRecallControl`）。
+
 ## 送信ボタンの自動クリック（オプション）
 
 `chrome.storage.sync` のキー **`autoClickMatchingPostBtn`** が `true` のとき、[`content.js`](content.js) は部屋IDを入れたあと **同じセレクタのボタンを再取得して `click()`** します（`setTimeout(0)` で 1 ティック遅延）。既定は `false` です。

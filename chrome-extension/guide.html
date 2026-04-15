@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arena Scan 連携 — 使い方</title>
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --text: #1a1d26;
+        --text-secondary: #5c6370;
+        --accent: #1565c0;
+        --border: #e2e4e9;
+        --font: system-ui, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1a1c21;
+          --text: #eceef2;
+          --text-secondary: #a8adb8;
+          --border: #3d424d;
+          --accent: #64b5f6;
+        }
+      }
+      body {
+        font-family: var(--font);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--bg);
+        margin: 0 auto;
+        max-width: 42rem;
+        padding: 24px 20px 48px;
+      }
+      h1 {
+        font-size: 1.35rem;
+        margin: 0 0 12px;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin: 28px 0 10px;
+        color: var(--accent);
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      ol,
+      ul {
+        margin: 0 0 12px;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin: 6px 0;
+      }
+      code {
+        font-size: 0.88em;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.06);
+      }
+      @media (prefers-color-scheme: dark) {
+        code {
+          background: rgba(255, 255, 255, 0.08);
+        }
+      }
+      .muted {
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Arena Scan と Chrome をつなぐ（使い方）</h1>
+    <p class="muted">
+      この拡張は、PC 上の <strong>Arena Scan</strong>（Smash Arena ID Scanner）が確定した部屋 ID
+      を、スマメイトの<strong>対戦ルーム</strong>画面の入力欄へ渡すためのものです。
+    </p>
+
+    <h2>はじめてのとき（3 ステップ）</h2>
+    <ol>
+      <li>PC の Arena Scan で<strong>「と連携」</strong>をオンにし、<strong>監視を開始</strong>します。</li>
+      <li>この拡張の<strong>詳細（ポート番号）</strong>を開き、PC アプリ側と<strong>同じ番号</strong>にします（既定は 2206）。</li>
+      <li>
+        ブラウザでスマメイトの対戦ルーム（プロフィール）ページを開きます。URL は次のような形式です（
+        <code>https://smashmate.net/rate/<span>数字</span>/</code>）。
+      </li>
+    </ol>
+
+    <h2>うまく届かないとき</h2>
+    <ul>
+      <li>PC の Arena Scan が起動していて、<strong>監視中</strong>か確認してください。</li>
+      <li>拡張の「PC アプリと連携する」がオンか、ポート番号が PC と一致しているか確認してください。</li>
+      <li>対戦ルームのタブが少なくとも 1 つ開いている必要があります（別サイトだけを見ている間は接続を張りません）。</li>
+      <li>ファイアウォールが <code>127.0.0.1</code>（この PC 自身）への通信を阻んでいないか確認してください。</li>
+    </ul>
+
+    <h2>ポートを変えるとき（開発者向けの補足）</h2>
+    <p>
+      PC 側と拡張側で同じ番号にそろえれば動作します。技術的には PC が
+      <code>http://127.0.0.1:&lt;番号&gt;/events</code> で待ち受け、拡張がそこへ接続します（OBS のポートとは別物です）。
+    </p>
+  </body>
+</html>

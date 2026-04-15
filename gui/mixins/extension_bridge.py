@@ -18,13 +18,24 @@ logger = logging.getLogger(__name__)
 class ExtensionBridgeMixin:
     """`SmashArenaIDScannerApp` が提供する属性（config / worker / ウィジェット等）を前提にする。"""
 
+    def _ensure_extension_bridge_sync_state(self) -> None:
+        if hasattr(self, "_extension_bridge_sync_seq"):
+            return
+        self._extension_bridge_sync_seq = 0
+        self._extension_bridge_sync_thread = None
+
     def _apply_extension_bridge_port_widgets_state(self) -> None:
         on = self._extension_bridge_enabled.get()
         gray = "gray50" if not on else None
         try:
-            self.entry_extension_bridge_port.configure(state="normal" if on else "disabled")
-            tc = gray or ("#d0d0d0" if ctk.get_appearance_mode() == "Dark" else "#333333")
-            self.label_bridge_port.configure(text_color=tc)
+            if getattr(self, "entry_extension_bridge_port", None) is not None:
+                self.entry_extension_bridge_port.configure(state="normal" if on else "disabled")
+            if getattr(self, "label_bridge_port", None) is not None:
+                tc = gray or ("#d0d0d0" if ctk.get_appearance_mode() == "Dark" else "#333333")
+                self.label_bridge_port.configure(text_color=tc)
+            btn = getattr(self, "btn_extension_bridge_port", None)
+            if btn is not None:
+                btn.configure(state="normal" if on else "disabled")
         except tk.TclError:
             pass
 
@@ -71,9 +82,36 @@ class ExtensionBridgeMixin:
         self._dispatch_ui(upd)
 
     def _sync_extension_bridge_listen(self) -> None:
+        self._ensure_extension_bridge_sync_state()
+        self._extension_bridge_sync_seq += 1
+        seq = self._extension_bridge_sync_seq
+        th = self._extension_bridge_sync_thread
+        if th is not None and th.is_alive():
+            return
+
+        def worker() -> None:
+            nonlocal seq
+            while True:
+                self._sync_extension_bridge_listen_blocking(seq)
+                if self._is_shutting_down:
+                    return
+                if seq == self._extension_bridge_sync_seq:
+                    return
+                seq = self._extension_bridge_sync_seq
+
+        self._extension_bridge_sync_thread = threading.Thread(
+            target=worker,
+            name="ExtensionBridgeSync",
+            daemon=True,
+        )
+        self._extension_bridge_sync_thread.start()
+
+    def _sync_extension_bridge_listen_blocking(self, seq: int) -> None:
         if self._is_shutting_down:
             return
         with self._extension_bridge_sync_lock:
+            if seq != self._extension_bridge_sync_seq:
+                return
             want = bool(self.config.extension_bridge_enabled) and bool(
                 self.worker and self.worker.is_monitoring
             )
