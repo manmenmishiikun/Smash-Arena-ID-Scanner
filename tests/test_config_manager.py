@@ -29,7 +29,7 @@ def test_sanitize_detection_fields() -> None:
     )
     cm.ConfigManager._sanitize_config(c)
     assert c.detection_confirm_needed == 1
-    assert c.detection_poll_fast_sec == 0.05
+    assert c.detection_poll_fast_sec == cm.MIN_DETECTION_POLL_FAST_SEC
     assert c.detection_poll_slow_sec == 120.0
 
 

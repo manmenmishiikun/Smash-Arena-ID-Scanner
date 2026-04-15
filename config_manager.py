@@ -14,6 +14,7 @@ CONFIG_BACKUP = "config.json.bak"
 
 # OBS とは無関係。`AppConfig.extension_bridge_port` の既定・サニタイズ失敗時のフォールバック。
 DEFAULT_EXTENSION_BRIDGE_PORT = 2206
+MIN_DETECTION_POLL_FAST_SEC = 0.2
 
 
 @dataclass
@@ -91,7 +92,7 @@ class ConfigManager:
             c.detection_confirm_needed = 2
         try:
             pf = float(c.detection_poll_fast_sec)
-            c.detection_poll_fast_sec = max(0.05, min(60.0, pf))
+            c.detection_poll_fast_sec = max(MIN_DETECTION_POLL_FAST_SEC, min(60.0, pf))
         except (TypeError, ValueError):
             c.detection_poll_fast_sec = 1.0
         try:

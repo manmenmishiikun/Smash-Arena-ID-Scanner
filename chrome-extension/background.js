@@ -56,7 +56,7 @@ function scheduleConnectionRefresh() {
  * @returns {Promise<boolean>}
  */
 async function hasAnyRateProfileTab() {
-  const tabs = await chrome.tabs.query({ url: "https://smashmate.net/*" });
+  const tabs = await chrome.tabs.query({ url: "https://smashmate.net/rate/*" });
   for (const tab of tabs) {
     if (!tab.url) continue;
     let pathname;
@@ -265,7 +265,7 @@ function parseSseDataBlock(block) {
  * @param {string} roomId
  */
 async function broadcastRoomId(roomId) {
-  const tabs = await chrome.tabs.query({ url: "https://smashmate.net/*" });
+  const tabs = await chrome.tabs.query({ url: "https://smashmate.net/rate/*" });
   const tasks = [];
   for (const tab of tabs) {
     if (tab.id == null || !tab.url) continue;

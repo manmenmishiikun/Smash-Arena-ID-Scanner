@@ -30,6 +30,14 @@ const ROOM_ID_RE = /^[A-HJ-NP-Y0-9]{5}$/;
 /** `autoClickMatchingPostBtn` を毎回 storage 読みしない（onChanged で同期） */
 let _autoClickCache = false;
 let _autoClickLoaded = false;
+let _lastAutoClickAtMs = 0;
+/** @type {Map<string, number>} */
+const _autoClickedRoomIdAtMs = new Map();
+
+/** 短時間の連打を防ぐための最短間隔（ms） */
+const AUTO_CLICK_COOLDOWN_MS = 15000;
+/** 同一IDを再クリック可能にするまでの保持時間（ms） */
+const AUTO_CLICK_ROOM_ID_TTL_MS = 120000;
 
 async function getAutoClickMatchingPostBtn() {
   if (_autoClickLoaded) return _autoClickCache;
@@ -121,6 +129,28 @@ function applyToInput(input, value) {
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
+function shouldAutoClickForRoomId(roomId) {
+  const now = Date.now();
+  for (const [id, atMs] of _autoClickedRoomIdAtMs) {
+    if (now - atMs >= AUTO_CLICK_ROOM_ID_TTL_MS) {
+      _autoClickedRoomIdAtMs.delete(id);
+    }
+  }
+
+  if (now - _lastAutoClickAtMs < AUTO_CLICK_COOLDOWN_MS) {
+    return false;
+  }
+
+  const lastClickedForId = _autoClickedRoomIdAtMs.get(roomId);
+  if (typeof lastClickedForId === "number" && now - lastClickedForId < AUTO_CLICK_ROOM_ID_TTL_MS) {
+    return false;
+  }
+
+  _lastAutoClickAtMs = now;
+  _autoClickedRoomIdAtMs.set(roomId, now);
+  return true;
+}
+
 /** 入力反映のあと、サイトのハンドラが走ってから押すため 1 ティック遅延。 */
 function clickMatchingPostButtonDeferred() {
   window.setTimeout(() => {
@@ -192,7 +222,8 @@ async function applyRoomId(roomId) {
   if (
     autoClickMatchingPostBtn &&
     changeBtn instanceof HTMLElement &&
-    isVisible(changeBtn)
+    isVisible(changeBtn) &&
+    shouldAutoClickForRoomId(trimmed)
   ) {
     clickMatchingPostButtonDeferred();
   }
