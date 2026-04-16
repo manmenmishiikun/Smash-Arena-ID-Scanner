@@ -6,6 +6,20 @@
 
 ---
 
+## 📅 2026-04-16: ドキュメント運用の整理（不要資料の削減）
+
+### 📌 実施内容
+- `docs/extension-bridge-test-plan.md` を削除（現時点で常用しないため）。
+- 将来タスク専用メモ `docs/future_notes.md` を新設。
+- `docs/project_smash-room-ocr.md` の「ドキュメントについて」に `docs/future_notes.md` を追記。
+
+### 🧭 運用方針
+- 未確定の「今後やりたいこと」は `docs/future_notes.md` に集約。
+- 仕様として確定した内容のみ `docs/project_smash-room-ocr.md` に反映。
+- 完了・変更履歴は `docs/development_log.md` に記録。
+
+---
+
 ## 📅 2026-04-14: 公開向けディレクトリ整理
 
 ### 📌 実施内容
