@@ -1,10 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Smash Arena ID Bridge",
-  "version": "1.1.8",
-  "description": "PC の Arena Scan で確定した部屋 ID を、スマメイトの対戦ルーム画面へ渡す連携拡張です。",
+  "version": "1.2.0",
+  "description": "PC の Arena Scan で確定した部屋 ID を、スマッチ（および旧スマメイト）の対戦ルーム画面へ渡す連携拡張です。",
   "permissions": ["storage", "tabs"],
-  "host_permissions": ["https://smashmate.net/rate/*", "http://127.0.0.1/*"],
+  "host_permissions": [
+    "https://smatch-jp.com/rate/*",
+    "https://smashmate.net/rate/*",
+    "http://127.0.0.1/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -22,6 +26,11 @@
     "open_in_tab": false
   },
   "content_scripts": [
+    {
+      "matches": ["https://smatch-jp.com/rate/*"],
+      "js": ["shared-path.js", "content-smatch.js"],
+      "run_at": "document_idle"
+    },
     {
       "matches": ["https://smashmate.net/rate/*"],
       "js": ["shared-path.js", "content.js"],

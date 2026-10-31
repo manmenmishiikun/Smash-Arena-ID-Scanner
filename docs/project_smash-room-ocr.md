@@ -368,3 +368,24 @@ OBS WebSocket 機能を利用し、スマブラSPの配信・録画画面から�
 2026-04-07（終了処理の安定化）: `gui_app.py` の終了系をブラッシュアップし、ワーカー停止処理を `_stop_worker()` に共通化。`×` / トレイ終了 / `destroy()` の全経路で同一処理に収束し、`stop_worker`・`join`・`tray_icon.stop` の各失敗時も例外を握り潰さずログを残して終了シーケンスを継続するようにした。加えて、終了開始後は UI 更新系コールバック（`_safe_update_*`）の `after` 投入を抑止して、破棄中の `TclError` ノイズと後追い更新を防止。`main.py` では単一起動リスナー終了処理を強化し、待受スレッドの `WaitForSingleObject` / UI 通知 / `SetEvent` / `join` / `CloseHandle` を安全化して、終了時のハンドル解放漏れとスレッド残留リスクを低減。
 
 2026-04-07（全体ブラッシュアップ）: `OCRWorker` を `ocr_worker.py` に分離。`pipeline_profile.py` で監視ループのフェーズ計測（`SMASH_ROOM_OCR_PROFILE`）。`OBS` 取得を `asyncio.to_thread` 化し、`decode_screenshot_payload` をテスト可能に分離。`config_manager` に原子的保存・バックアップ・数値サニタイズ・スクショ用 `AppConfig` フィールドを追加。`image_processor` に粗い照合による早期スキップと `O` 分岐列挙の上限（`MAX_O_BRANCH_POSITIONS`）。`ocr_engine` で BGRA を `ascontiguousarray` 化。`tests/` に `pytest` 回帰テスト追加。`requirements.txt` に `pytest` を追記。
+
+---
+
+# 12. スマッチ（Smatch）向け拡張・第1段（2026-10-31）
+
+詳細な差分調査は別紙（Project store の `docs/smatch-gap.md`）。ここでは実装に入れた約束だけ記す。
+
+## 結論（第1段）
+
+- **ID アプリ（OCR・クリップボード・SSE）は変更しない。**
+- Chrome 拡張 **1.2.0**: `https://smatch-jp.com/rate/*` に [`content-smatch.js`](../chrome-extension/content-smatch.js) を注入し、SSE の 5 文字を `form#arenaForm input[name="arena_id"]` へ書く。
+- **やらない**: 「設定」submit の自動 click、キーショートカット、パスワード入力。
+- スマメイト用 [`content.js`](../chrome-extension/content.js) は **別 matches** のまま残し、スマッチ経路にキー／auto-click を載せない（競合回避）。
+- background の rate タブ判定はホストを `smatch-jp.com` / `smashmate.net` に限定（`shared-path.js` の `isSupportedRateTabUrl`）。
+
+## 実 DOM（ホスト／募集中で確認）
+
+- URL: `/rate/<スマッチ内ルーム番号>/`
+- フォーム: `#arenaForm.arena-form` + `arena_id` + submit「設定」
+- ホスト目印: `b.host-mark`「部屋を立てる人」
+- ゲスト画面 DOM は未取得。取得後に「書かない」分岐を厳しくする。

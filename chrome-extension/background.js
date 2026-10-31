@@ -1,9 +1,9 @@
 /**
  * ローカル SSE (GET http://127.0.0.1:<port>/events) を購読し、
- * smashmate.net の rate ページに開いているタブへ部屋コードを送る。
+ * smatch-jp.com / smashmate.net の rate ページに開いているタブへ部屋コードを送る。
  * EventSource は SW での互換差を避けるため fetch + ReadableStream でパースする。
  *
- * SSE 接続は「拡張の接続 ON」かつ **pathname が `/rate/<数>/` のタブが 1 つ以上あるときだけ**
+ * SSE 接続は「拡張の接続 ON」かつ **対応ホストかつ pathname が `/rate/<数>/` のタブが 1 つ以上あるときだけ**
  * 張る（トップや別ページだけのときは localhost へ繋がない）。
  */
 
@@ -186,7 +186,7 @@ function scheduleConnectionRefresh() {
 }
 
 /**
- * `/rate/<数>/` 形式の smashmate タブが 1 つでもあれば true（アクティブでなくてよい）。
+ * 対応ホストの `/rate/<数>/` タブが 1 つでもあれば true（アクティブでなくてよい）。
  * @returns {Promise<boolean>}
  */
 async function hasAnyRateProfileTab() {
@@ -197,14 +197,7 @@ async function hasAnyRateProfileTab() {
 }
 
 function updateRateProfileTabCacheEntry(tabId, url) {
-  let pathname;
-  try {
-    pathname = new URL(url).pathname;
-  } catch {
-    rateProfileTabCache.delete(tabId);
-    return;
-  }
-  if (isRateProfilePath(pathname)) {
+  if (isSupportedRateTabUrl(url)) {
     rateProfileTabCache.set(tabId, url);
     return;
   }
@@ -221,7 +214,7 @@ async function rebuildRateProfileTabCache() {
   }
   rebuildRateProfileTabCachePromise = (async () => {
     try {
-      const tabs = await chrome.tabs.query({ url: "https://smashmate.net/rate/*" });
+      const tabs = await chrome.tabs.query({ url: rateTabUrlPatterns() });
       rateProfileTabCache.clear();
       for (const tab of tabs) {
         if (tab.id == null || !tab.url) {
