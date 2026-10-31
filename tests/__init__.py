@@ -1,1 +1,1 @@
-# Tests package for smash-room-ocr
+# Tests package for Smash Arena ID Scanner

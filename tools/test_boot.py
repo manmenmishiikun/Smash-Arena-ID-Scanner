@@ -1,3 +1,5 @@
+"""起動スモーク用の簡易スクリプト。"""
+
 import os
 import sys
 import customtkinter as ctk

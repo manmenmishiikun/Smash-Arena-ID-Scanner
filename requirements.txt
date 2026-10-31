@@ -1,3 +1,4 @@
+# Runtime / build / test dependencies for Smash Arena ID Scanner
 winsdk
 aiohttp
 obsws-python

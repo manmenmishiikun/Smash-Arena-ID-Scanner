@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# PyInstaller build spec for Smash Arena ID Scanner
 from PyInstaller.utils.hooks import collect_all
 
 datas = [

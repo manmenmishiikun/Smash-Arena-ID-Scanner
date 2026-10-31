@@ -1,5 +1,5 @@
 """
-127.0.0.1 上の SSE（Server-Sent Events）で部屋IDを配信する拡張連携用サーバー。
+127.0.0.1 上の SSE（Server-Sent Events）で部屋 ID を配信する拡張連携用サーバー。
 
 OCR ワーカーの asyncio ループとは別スレッド・別イベントループで動作する。
 

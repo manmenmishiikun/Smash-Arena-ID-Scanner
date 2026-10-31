@@ -1,3 +1,5 @@
+"""アプリ起動エントリポイント。"""
+
 import logging
 import os
 import sys

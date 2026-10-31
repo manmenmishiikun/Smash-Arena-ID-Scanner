@@ -1,5 +1,4 @@
 """
-obs_capture.py
 OBS WebSocket v5 接続・スクリーンショット取得モジュール
 
 使用ライブラリ: obsws-python (pip install obsws-python)
