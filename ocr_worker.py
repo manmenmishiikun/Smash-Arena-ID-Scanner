@@ -1,5 +1,5 @@
 """
-バックグラウンド OCR ワーカー（OBS 取得 → 画像処理 → WinRT OCR → 部屋ID確定）。
+バックグラウンド OCR ワーカー（OBS 取得 → 画像処理 → WinRT OCR → 部屋 ID 確定）。
 """
 
 from __future__ import annotations

@@ -137,5 +137,19 @@ OBS の画面をチェックし続け、部屋 ID が見つかった瞬間に**�
 
 ---
 
+## リポジトリ構成（開発者向け）
+
+| パス | 内容 |
+|------|------|
+| `gui/` | メインウィンドウとトレイ UI |
+| `chrome-extension/` | スマメイト連携用の Chrome 拡張 |
+| `assets/` | OCR 用サンプル・テンプレート画像 |
+| `docs/` | 設計メモと開発ログ |
+| `packaging/` / `scripts/` / `tools/` / `tests/` | ビルド・検証・テスト用 |
+
+一般利用は [Releases](https://github.com/manmenmishiikun/Smash-Arena-ID-Scanner/releases) の exe で十分です。
+
+---
+
 分からないことがあれば、開発者の X（旧 Twitter）にDMをどうぞ。  
 https://x.com/Shiikun_SSB

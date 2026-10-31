@@ -88,6 +88,8 @@ OBS WebSocket 機能を利用し、スマブラSPの配信・録画画面から�
 | `icons/` | アイコン素材（`arena scan@128.png`＝デスクトップ、`mate flow-*@128.png`＝拡張用）。 |
 | `tools/generate_extension_icons.py` | 拡張配布用 PNG（16/32/48/128px）を 128px 素材から生成し `chrome-extension/icons/` へ出力。 |
 
+主要フォルダ直下の短い `README.md`（`assets/` / `gui/` / `icons/` / `packaging/` / `scripts/` / `tools/`）は、中身の要約と GitHub ファイル一覧の表示整理用。アプリ挙動には影響しない。
+
 ## アイコン（2026-04）
 
 - **デスクトップ**: `icons/arena scan@128.png` をタイトルバー（64px）およびシステムトレイ（64px）に利用。巨大な原本（`arena scan.png` 等）は exe に同梱せず、128px のみ `packaging/SmashArenaIDScanner.spec` の `datas` に追加。
